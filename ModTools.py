@@ -588,7 +588,7 @@ class Civ:
         Rows = []
         for Leader in self.Leaders:
             Row = []
-            Row.append('DOMAIN_PLAYER')
+            Row.append('Players:Expansion2_Players')
             Row.append(self.Type)
             Row.append(self.Name)
             Row.append('ICON_' + self.Type)
@@ -600,6 +600,7 @@ class Civ:
             Row.append('ICON_' + Leader)
             Row.append('LOC_TRAIT_' + Leader + '_NAME')
             Row.append('LOC_TRAIT_' + Leader + '_DESCRIPTION')
+            Row.append('ICON_' + Leader)
             Row.append('PORTRAIT_' + Leader)
             Row.append('PORTRAIT_BACKGROUND_' + Leader)
             Rows.append('-- ' + self.ShortType + ': ' + Leader)
@@ -4288,9 +4289,6 @@ def ModinfoMain():
     # 写回文件
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
-
-
-
 
 # ======================================================================================================================================================================
 # ======================================================================================================================================================================
