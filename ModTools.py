@@ -485,7 +485,7 @@ class Civ:
             # 那就循环城市数量的名字
             i = 1
             for name in self.CityNames:
-                rows.append(ListToSQLTuple([self.Type, 'LOC_CITY_NAME_' + Prefix + GetMidfix("文明") + self.ShortType + str(i), name]))
+                rows.append(ListToSQLTuple([self.Type, 'LOC_CITY_NAME_' + Prefix + GetMidfix("文明") + self.ShortType + '_' + str(i)]))
                 i += 1
             return convert_to_comma_noend_newline(rows)
         elif self.City == "Self": # 如果是Self，那就是报错
@@ -1055,7 +1055,7 @@ class District:
         if self.IsNew:
             self.AddData()
     def Support(self, TableName):# 给出From语句
-        return f"FROM {TableName} WHERE DistrictType = '{self.FromData}'"
+        return f" FROM {TableName} WHERE DistrictType = '{self.FromData}'"
     def AddData(self):# 在Districtdata里寻找
         eData = get_column_by_header(Districtdata, self.ShortType)
         eBaseData = get_column_by_header(Districtdata, "默认参数") # 默认参数
@@ -1345,7 +1345,7 @@ class Building:
         if self.IsNew:
             self.AddData()
     def Support(self, TableName):# 给出From语句
-        return f"FROM {TableName} WHERE BuildingType = '{self.FromData}'"
+        return f" FROM {TableName} WHERE BuildingType = '{self.FromData}'"
     def AddData(self):# 在Buildingdata里寻找
         eData = get_column_by_header(Buildingdata, self.ShortType)
         eBaseData = get_column_by_header(Buildingdata, "默认参数") # 默认参数
@@ -1794,10 +1794,10 @@ class Unit:
                 self.Units.append('NULL')
             else:
                 self.Units.append(eData[i])
-        # 接下来是Units_XP2表，11行,默认参数为NaN就用NULL
-        if not all(pd.isna(eData[i]) for i in range(63, 74)):
+        # 接下来是Units_XP2表，10行,默认参数为NaN就用NULL
+        if not all(pd.isna(eData[i]) for i in range(63, 73)):
             self.Units_XP2.append(self.Type) # UnitType
-            for i in range(63, 74):
+            for i in range(63, 73):
                 if pd.isna(eData[i]) and not pd.isna(eBaseData[i]):
                     self.Units_XP2.append(eBaseData[i])
                 elif pd.isna(eData[i]) and pd.isna(eBaseData[i]):
@@ -1805,20 +1805,20 @@ class Unit:
                 else:
                     self.Units_XP2.append(eData[i])
         # 接下来是Units_MODE表,其实就1行，不为NaN就插入
-        if not pd.isna(eData[74]):
-            self.Units_MODE.append([self.Type, eData[74]])
+        if not pd.isna(eData[73]):
+            self.Units_MODE.append([self.Type, eData[73]])
         # 接下来是UnitUpgrades表,其实就1行，不为NaN就插入
-        if not pd.isna(eData[75]):
-            self.UnitUpgrades.append([self.Type, f"{CommonPrefix['单位']}{Prefix}{GetMidfix('单位')}{eData[75]}"])
+        if not pd.isna(eData[74]):
+            self.UnitUpgrades.append([self.Type, f"{CommonPrefix['单位']}{Prefix}{GetMidfix('单位')}{eData[74]}"])
         # 接下来是UnitCaptures表,其实就1行，不为NaN就插入
-        if not pd.isna(eData[76]):
-            self.UnitCaptures.append([f"{CommonPrefix['单位']}{Prefix}{GetMidfix('单位')}{eData[76]}", self.Type])
+        if not pd.isna(eData[75]):
+            self.UnitCaptures.append([self.Type, eData[75]])
         # 接下来是UnitAiInfos表, 22行，为NaN就不插入，否则插入默认参数
         for i in range(77, 99): 
             if not pd.isna(eData[i]):
                 self.UnitAiInfos.append([self.Type, eBaseData[i]])
         # 接下来是TypeTags表, 39行，为NaN就不插入，否则插入默认参数
-        for i in range(99, 138): 
+        for i in range(100, 139): 
             if not pd.isna(eData[i]):
                 self.TypeTags.append([self.Type, eBaseData[i]])
         # 如果为特色单位， 直接插入TypeTags表
@@ -1860,7 +1860,7 @@ class Unit:
         if not self.IsNew:
             table = UnitUpgradesRows.copy()
             table[0] = f"'{self.Type}'"
-            return ListToSQLSelect(table) + f"FROM UnitUpgrades WHERE Unit = '{self.FromData}'"
+            return ListToSQLSelect(table) + f" FROM UnitUpgrades WHERE Unit = '{self.FromData}'"
         rows = []
         if len(self.UnitUpgrades) == 0:
             return ''
@@ -1897,7 +1897,7 @@ class Unit:
         if not self.IsNew:
             table = TypeTagsRows.copy()
             table[0] = f"'{self.Type}'"
-            return ListToSQLSelect(table) + self.Support("TypeTags")
+            return ListToSQLSelect(table) + f" FROM TypeTags WHERE Type = '{self.FromData}'"
         rows = []
         if len(self.TypeTags) == 0:
             return ''
@@ -2153,9 +2153,9 @@ class Improvement:
         # 接下来是Improvement_YieldChanges表, 6行，为NaN就插入默认数值
         for i in range(52, 58): 
             if pd.isna(eData[i]):
-                self.Improvement_YieldChanges.append([self.Type, eBaseData[i]])
+                self.Improvement_YieldChanges.append([self.Type, YIELDTYPE[i-52], 0])
             else:
-                self.Improvement_YieldChanges.append([self.Type, eData[i]])
+                self.Improvement_YieldChanges.append([self.Type, YIELDTYPE[i-52], eData[i]])
         # 接下来是Improvement_Tourism表, 4行，第一行为NaN就不插入，后3行为NaN就插入默认数值，默认参数为NaN就用NULL
         if not pd.isna(eData[59]):
             row = []
@@ -2309,7 +2309,7 @@ class Improvements:
                 Values.append(improvement.GetImprovement_TourismsRows())
         if len(Values) == 0:
             return ''
-        return SQLValues("Improvement_Tourisms", Improvement_TourismsRows) + convert_to_comma_newline(Values)
+        return SQLValues("Improvement_Tourism", Improvement_TourismsRows) + convert_to_comma_newline(Values)
 # 改良设施文件主函数:
 def ImprovementMain():
     if len(ImprovementData) == 0:
@@ -2331,7 +2331,7 @@ def ImprovementMain():
     ImprovementSQL.append(ImprovementsData.GetImprovement_ValidTerrains())
     ImprovementSQL.append('-- Improvement_ValidFeatures')
     ImprovementSQL.append(ImprovementsData.GetImprovement_ValidFeatures())
-    ImprovementSQL.append('-- Improvement_Tourisms')
+    ImprovementSQL.append('-- Improvement_Tourism')
     ImprovementSQL.append(ImprovementsData.GetImprovement_Tourisms())
     ImprovementSQLStr = '\n\n'.join(ImprovementSQL)
     ImprovementFile = f"{FilePath}\\{fileName}_Improvements.sql"
@@ -2569,7 +2569,7 @@ class Governors:
             Types.append(governor.GetTypes())
         if len(Types) == 0:
             return ''
-        return convert_to_comma_noend_newline(Types)
+        return TypeHead + convert_to_comma_newline(Types)
     def GetTraits(self):
         Values = []
         for governor in self.Governors:
@@ -3221,8 +3221,8 @@ class Texts:
                 self.DistrictTexts.append(self.support(lang, district.Name, district.NameText))
                 self.DistrictTexts.append(self.support(lang, district.Description, district.DescriptionText))
                 if district.IsTrait:
-                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ district.Name + '}'))
+                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ district.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in district.Pedia:
@@ -3232,8 +3232,8 @@ class Texts:
                 self.DistrictTexts.append(self.support(lang, district.Name, ''))
                 self.DistrictTexts.append(self.support(lang, district.Description, ''))
                 if district.IsTrait:
-                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ district.Name + '}'))
+                    self.DistrictTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ district.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in district.Pedia:
@@ -3250,8 +3250,8 @@ class Texts:
                 self.BuildingTexts.append(self.support(lang, building.Name, building.NameText))
                 self.BuildingTexts.append(self.support(lang, building.Description, building.DescriptionText))
                 if building.IsTrait:
-                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ building.Name + '}'))
+                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ building.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in building.Pedia:
@@ -3261,8 +3261,8 @@ class Texts:
                 self.BuildingTexts.append(self.support(lang, building.Name, ''))
                 self.BuildingTexts.append(self.support(lang, building.Description, ''))
                 if building.IsTrait:
-                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ building.Name + '}'))
+                    self.BuildingTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ building.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in building.Pedia:
@@ -3279,8 +3279,8 @@ class Texts:
                 self.UnitTexts.append(self.support(lang, unit.Name, unit.NameText))
                 self.UnitTexts.append(self.support(lang, unit.Description, unit.DescriptionText))
                 if unit.IsTrait:
-                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ unit.Name + '}'))
+                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ unit.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in unit.Pedia:
@@ -3290,8 +3290,8 @@ class Texts:
                 self.UnitTexts.append(self.support(lang, unit.Name, ''))
                 self.UnitTexts.append(self.support(lang, unit.Description, ''))
                 if unit.IsTrait:
-                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ unit.Name + '}'))
+                    self.UnitTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ unit.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in unit.Pedia:
@@ -3308,8 +3308,8 @@ class Texts:
                 self.ImprovementTexts.append(self.support(lang, improvement.Name, improvement.NameText))
                 self.ImprovementTexts.append(self.support(lang, improvement.Description, improvement.DescriptionText))
                 if improvement.IsTrait:
-                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ improvement.Name + '}'))
+                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ improvement.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in improvement.Pedia:
@@ -3319,8 +3319,8 @@ class Texts:
                 self.ImprovementTexts.append(self.support(lang, improvement.Name, ''))
                 self.ImprovementTexts.append(self.support(lang, improvement.Description, ''))
                 if improvement.IsTrait:
-                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ improvement.Name + '}'))
+                    self.ImprovementTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ improvement.Description + '}'))
                 if PediaText:
                     i = 1
                     for para in improvement.Pedia:
@@ -3342,8 +3342,8 @@ class Texts:
                 self.GovernorTexts.append(self.support(lang, governor.Name, governor.TextName))
                 self.GovernorTexts.append(self.support(lang, governor.Description, governor.TextDescription))
                 if governor.IsTrait:
-                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ governor.Name + '}'))
+                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ governor.Description + '}'))
                 self.GovernorTexts.append(self.support(lang, f"LOC_{Prefix + GetMidfix('总督') + governor.ShortType}_TITLE", governor.TextTitle))
                 self.GovernorTexts.append(self.support(lang, f"LOC_{Prefix + GetMidfix('总督') + governor.ShortType}_SHORT_TITLE", governor.TextShortTitle))
                 # 下面是晋升
@@ -3370,8 +3370,8 @@ class Texts:
                 self.GovernorTexts.append(self.support(lang, governor.Name, ''))
                 self.GovernorTexts.append(self.support(lang, governor.Description, ''))
                 if governor.IsTrait:
-                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ f"LOC_{TraitType}_NAME" + '}'))
-                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ f"LOC_{TraitType}_DESCRIPTION" + '}'))
+                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", '{'+ governor.Name + '}'))
+                    self.GovernorTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", '{'+ governor.Description + '}'))
                 self.GovernorTexts.append(self.support(lang, f"LOC_{Prefix + GetMidfix('总督') + governor.ShortType}_TITLE", ''))
                 self.GovernorTexts.append(self.support(lang, f"LOC_{Prefix + GetMidfix('总督') + governor.ShortType}_SHORT_TITLE", ''))
                 # 下面是晋升
