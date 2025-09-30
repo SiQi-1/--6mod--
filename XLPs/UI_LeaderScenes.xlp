@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AssetObjects..XLP>
+	<m_Version>
+		<major>1</major>
+		<minor>0</minor>
+		<build>0</build>
+		<revision>0</revision>
+	</m_Version>
+	<m_ClassName text="UITexture"/>
+	<m_PackageName text="UI_LeaderScenes"/>
+	<m_Entries>
+		<Element>
+			<m_EntryID text="SIQI_L0000_1"/>
+			<m_ObjectName text="CLEOPATRA_1"/>
+		</Element>
+		<Element>
+			<m_EntryID text="SIQI_L0000_2"/>
+			<m_ObjectName text="CLEOPATRA_2"/>
+		</Element>
+		<Element>
+			<m_EntryID text="SIQI_L0000_3"/>
+			<m_ObjectName text="CLEOPATRA_3"/>
+		</Element>
+		<Element>
+			<m_EntryID text="SIQI_L0000_4"/>
+			<m_ObjectName text="BARBAROSSA_4"/>
+		</Element>
+	</m_Entries>
+	<m_AllowedPlatforms>
+		<Element>WINDOWS</Element>
+		<Element>LINUX</Element>
+		<Element>MACOS</Element>
+		<Element>IOS</Element>
+	</m_AllowedPlatforms>
+</AssetObjects..XLP>
