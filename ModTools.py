@@ -3461,7 +3461,6 @@ class Texts:
     def GetAllTexts(self):
         AllTexts = []
         if len(self.CivilizationTexts) != 0:
-            AllTexts.append('-- Civilization Texts')
             AllTexts.append(convert_to_comma_noend_newline(self.CivilizationTexts))
         if len(self.LeaderTexts) != 0:
             AllTexts.append('-- Leader Texts')
@@ -3532,7 +3531,7 @@ def TextMain():
     TextSQL.append(tTexts.GetAllTexts())
     if tTexts.GetOtherTexts() != '':
         TextSQL.append(tTexts.GetOtherTexts())
-    TextsSQL = '\n\n'.join(TextSQL) + ';'
+    TextsSQL = '\n'.join(TextSQL) + ';'
     TextsFile = f"{TextPath}\\{fileName}_Texts_CN.sql"
     with open(TextsFile, "w", encoding="utf-8") as f:
         f.write(TextsSQL)
@@ -3545,7 +3544,7 @@ def TextMain():
         TextSQL.append(tTexts.GetAllTexts())
         if tTexts.GetOtherTexts() != '':
             TextSQL.append(tTexts.GetOtherTexts())
-        TextsSQL = '\n\n'.join(TextSQL) + ';'
+        TextsSQL = '\n'.join(TextSQL) + ';'
         TextsFile = f"{TextPath}\\{fileName}_Texts_EN.sql"
         with open(TextsFile, "w", encoding="utf-8") as f:
             f.write(TextsSQL)
@@ -3558,7 +3557,7 @@ def TextMain():
         TextSQL.append(tTexts.GetAllTexts())
         if tTexts.GetOtherTexts() != '':
             TextSQL.append(tTexts.GetOtherTexts())
-        TextsSQL = '\n\n'.join(TextSQL) + ';'
+        TextsSQL = '\n'.join(TextSQL) + ';'
         TextsFile = f"{TextPath}\\{fileName}_Texts_HK.sql"
         with open(TextsFile, "w", encoding="utf-8") as f:
             f.write(TextsSQL)
@@ -4214,7 +4213,7 @@ def ModinfoMain():
     for root in TextRoot:
         if HasFile(f"{TextPath}\\{fileName}{root}"):
             Contents.append(GetContent(f"Text\\{fileName}{root}"))
-            UpdateText += f'<File>Text\\{fileName}{root}</File>'
+            UpdateText += f'<File>Text/{fileName}{root}</File>'
     UpdateText += '</UpdateText>'
 
     UpdateIcons = f'<UpdateIcons id="UpdateIcons">'
@@ -4241,7 +4240,7 @@ def ModinfoMain():
     for root in ScriptRoot:
         if HasFile(f"{ScriptsPath}\\{fileName}{root}"):
             Contents.append(GetContent(f"Scripts\\{fileName}{root}"))
-            AddGameplayScripts += f'<File>Scripts\\{fileName}{root}</File>'
+            AddGameplayScripts += f'<File>Scripts/{fileName}{root}</File>'
             Has = True
     AddGameplayScripts += '</AddGameplayScripts>'
     if not Has:
@@ -4254,7 +4253,7 @@ def ModinfoMain():
         if HasFile(f"{UIPath}\\{fileName}{root}.xml"):
             Contents.append(GetContent(f"UI\\{fileName}{root}.xml"))
             Contents.append(GetContent(f"UI\\{fileName}{root}.lua"))
-            AddUIScripts += f'<File>UI\\{fileName}{root}.xml</File>'
+            AddUIScripts += f'<File>UI/{fileName}{root}.xml</File>'
             Has = True
     AddUIScripts += '</AddUserInterfaces>'
     if not Has:
@@ -4265,7 +4264,7 @@ def ModinfoMain():
     Has = False
     if HasFile(f"{SupportPath}\\{fileName}_Support.lua"):
         Contents.append(GetContent(f"Support\\{fileName}_Support.lua"))
-        AddSupport += f'<File>Support\\{fileName}_Support.lua</File>'
+        AddSupport += f'<File>Support/{fileName}_Support.lua</File>'
         Has = True
     AddSupport += '</ImportFiles>'
     if not Has:
