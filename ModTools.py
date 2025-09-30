@@ -873,7 +873,7 @@ def ConfigMain():
     ConfigSQL.append('-- Player Items')
     ConfigSQL.append(CivsData.GetPlayerItemRows())
     ConfigSQLStr = '\n\n'.join(ConfigSQL)
-    ConfigFile = FilePath + "\\" + fileName + "_Config.sql"
+    ConfigFile = FilePath + "\\" + fileName + "_Configs.sql"
     with open(ConfigFile, "w", encoding="utf-8") as f:
         f.write(ConfigSQLStr)
      
