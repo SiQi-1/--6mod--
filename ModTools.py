@@ -4198,6 +4198,7 @@ def ModinfoMain():
     Contents = [] # 导入的文件
     LoadOrder = f"<Properties><LoadOrder>{LoadOrderNumber}</LoadOrder></Properties>" # 加载顺序
     UpdateDatabasef = f'<UpdateDatabase id="UpdateDatabase"><File>{fileName}_Configs.sql</File></UpdateDatabase>'
+    Contents.append(GetContent(f"{fileName}_Configs.sql"))
     UpdateDatabaseg = '<UpdateDatabase id="UpdateDatabase">'
     if LoadOrderNumber != 0:
         UpdateDatabaseg += LoadOrder
