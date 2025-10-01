@@ -640,10 +640,14 @@ class Civ:
             pLeader = Leader(eLeader.iloc[0]) # 这里每个领袖简称都是唯一的，获取第一行就行
             # 文明特色
             for trait in self.Traits:
+                if trait == self.Type:
+                    continue
                 Rows.append(Support(leader, trait, i))
                 i += 10
             # 领袖特色
             for trait in pLeader.Traits:
+                if trait == pLeader.Type:
+                    continue
                 Rows.append(Support(leader, trait, i))
                 i += 10
         return convert_to_comma_noend_newline(Rows)
