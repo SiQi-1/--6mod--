@@ -40,11 +40,14 @@ def GetFirstColRows(params, condition):
             rows.append(row.dropna().tolist())
     return pd.DataFrame(rows)
 
-# 寻找数据中第二列符合条件的行的第一列元素
+DBUI = ['区域', '建筑', '单位', '改良']
+
+# 寻找数据中第二列符合条件的行的第一列元素，只找第一个，并且这个元素必须在DBUI里
 def FindFirstColBySecondCol(params, condition):
     for index, row in params.iterrows():
         if row.iloc[1] == condition :
-            return row.iloc[0]
+            if row.iloc[0] in DBUI:
+                return row.iloc[0]
     return None
 
 # 获取第一列和第二列都符合条件的行，并且剔除NaN值
@@ -108,11 +111,12 @@ BaseData = GetFirstColRows(NewCivdata, "基本信息")
 fileName = BaseData.iloc[0, 1]  # mod 名称
 Language = BaseData.iloc[0, 2]  # 语言
 Prefix = BaseData.iloc[0, 3] + "_"  # 前缀
-Midfix = BaseData.iloc[0, 4] == 1 # 中缀（布尔值）
+Midfix = BaseData.iloc[0, 4] # 中缀
 SupportFile = BaseData.iloc[0, 5] == 1 # 需要辅助文件（布尔值）
 AutoIconString = BaseData.iloc[0, 6] == 1 # 自动生成图标（布尔值）
 PediaText = BaseData.iloc[0, 7] == 1 # 需要百科文本
 LoadOrderNumber = int(BaseData.iloc[0, 8])  # 加载顺序
+StopMain = BaseData.iloc[0, 9] == 1 # 停用主文件（布尔值）
 
 FilePath = path + "\\" + fileName + "\\" + fileName
 
@@ -142,7 +146,7 @@ TraitRows = ["TraitType", "Name", "Description"]
 # 通用前缀
 CommonPrefix = {"文明": "CIVILIZATION_", "领袖": "LEADER_", "区域": "DISTRICT_", "建筑": "BUILDING_", "单位": "UNIT_", "改良": "IMPROVEMENT_", "项目": "PROJECT_", "总督": "GOVERNOR_", "政策": "POLICY_"}
 # 通用中缀
-CommonMidfix = {"文明": "C00_", "领袖": "L00_", "区域": "D00_", "建筑": "B00_", "单位": "U00_", "改良": "I00_", "项目": "P00_", "总督": "G00_", "政策": "PC00_"}
+CommonMidfix = {"文明": "C00", "领袖": "L00", "区域": "D00", "建筑": "B00", "单位": "U00", "改良": "I00", "项目": "P00", "总督": "G00", "政策": "PC00"}
 
 # 文明类
 CivilizationsRows = ["CivilizationType", "Name", "Description", "Adjective", "StartingCivilizationLevelType","Ethnicity", "RandomCityNameDepth"]
@@ -396,8 +400,8 @@ def SQLSelectNewLine(tableName, Rows):
 # 工具函数
 # 获取中缀
 def GetMidfix(Kind):
-    if Midfix:
-        return CommonMidfix[Kind] + Midfix + "_"
+    if Midfix != 0:
+        return f"{CommonMidfix[Kind]}{Midfix}_"
     else:
         return ""
 
@@ -439,7 +443,7 @@ def GetTraitRows(params):
 class Civ:
     def __init__(self, params): # params 是 DataFrame 的一行
         self.ShortType = str(params.iloc[1])
-        self.Type = CommonPrefix["文明"] + Prefix + ('C00_' + Midfix + "_" + self.ShortType if Midfix > 0 else self.ShortType)
+        self.Type = CommonPrefix["文明"] + Prefix + GetMidfix("文明") + self.ShortType
         self.Name, self.Description = GetNameDescription(self.Type)
         self.Adjective = 'LOC_' + self.Type + '_ADJECTIVE'
         self.StartingCivilizationLevelType = 'CIVILIZATION_LEVEL_FULL_CIV'
@@ -494,6 +498,8 @@ class Civ:
         else: # 那就是复制其他文明的城市名字，使用SELCET语句
             return (f"SELECT '{self.Type}', CityName FROM CityNames WHERE CivilizationType = '{self.City}'")
     def GetCitizenNameRows(self):
+        if self.Citizen[0] != 'Self' or (not isinstance(self.Citizen[0], (int, float))):
+            return ''
         if sum(self.Citizen) == 0:
             return ''
         rows = []
@@ -509,6 +515,8 @@ class Civ:
         else: # 那就是复制其他文明的市民名字，使用SELCET语句
             return (f"SELECT '{self.Type}', CitizenName, Female, Modern FROM CivilizationCitizenNames WHERE CivilizationType = '{self.Citizen}'")
     def AddTrait(self):# 在CivTraitData里寻找
+        # 先把自己的Trait加进去
+        self.Traits.append(self.Type)
         for index, row in CivTraitData.iterrows():
             if row.iloc[1] == self.ShortType:
                 # 从第3列开始的非NaN值
@@ -521,6 +529,8 @@ class Civ:
             if row.iloc[2] == self.ShortType:
                 self.Leaders.append(CommonPrefix["领袖"] + Prefix + GetMidfix("领袖") + row.iloc[1])
     def AddCityName(self):# 在CityNamedata里寻找?
+        if not (isinstance(self.City, int) or self.City == "Self"):
+            return
         # 看看是不是0
         if self.City == 0:
             return
@@ -546,9 +556,12 @@ class Civ:
             for name in RandNames:
                 self.CityNames.append(name)
             self.CityIsValues = True
-        else: # 那就是复制其他文明的城市名字，直接返回即可
-            return
+        else: 
+            raise ValueError("城市名字输入错误")
     def AddCitizenName(self):# 在CitizenNamedata里寻找?
+        # 看看self.Citize[0]是不是数字（浮点数），只看第一个元素是不是数字
+        if (self.Citizen[0] != 'Self') or (not isinstance(self.Citizen[0], (int, float))):
+            return
         # 看看总和是不是0
         if sum(self.Citizen) == 0:
             return
@@ -582,8 +595,8 @@ class Civ:
             for j in range(self.Citizen[2], self.Citizen[2] + self.Citizen[3]): # 现代女性名字
                 self.CitizenNames.append([RandFemaleNames[j], 1, 1])
             self.CitizenIsValues = True
-        else: # 那就是复制其他文明的市民名字，直接返回即可
-            return
+        else: #报错
+            raise ValueError("市民名字输入错误")
     def GetPlayerRows(self):
         Rows = []
         for Leader in self.Leaders:
@@ -764,7 +777,7 @@ class Leader:
             rows.append(ListToSQLTuple([self.Type, 'TRAIT_' + trait]))
         if len(rows) == 0:
             return ''
-        return convert_to_comma_noend(rows)
+        return convert_to_comma_noend_newline(rows)
     def GetLoadingInfoRows(self):
         Rows = []
         Rows.append(self.Type)
@@ -782,6 +795,7 @@ class Leader:
         Name = "领袖" + self.NameText
         return "--" + Name + "外交肖像：" + ImpForegroundImage + "\n" + "--" + Name + "外交背景：" + ImpBackgroundImage1 + ", " + ImpBackgroundImage2 + ", " + ImpBackgroundImage3
     def AddTrait(self):# 在LeaderTraitData里寻找
+        self.Traits.append(self.Type)
         for index, row in LeaderTraitData.iterrows():
             if row.iloc[1] == self.ShortType:
                 # 从第3列开始的非NaN值
@@ -1415,7 +1429,7 @@ class Building:
             table[0] = f"'{self.Type}'"
             table[1] = f"'{self.Name}'"
             table[2] = f"'{self.Description}'"
-            table[3] = f"'{ 'TRAIT_' + self.Type }'" if self.Buildings[3] != 'NULL' else 'NULL'
+            table[3] = f"'{ 'TRAIT_' + self.Type }'" if self.IsTrait else 'NULL'
             return ListToSQLSelectNewLine(table) + self.Support("Buildings")
         return ListToSQLTupleNewLine(self.Buildings)
     def GetBuildings_XP2Rows(self):
@@ -1532,7 +1546,7 @@ class Buildings:
         Types = []
         TypesNoTrait = []
         for building in self.Buildings:
-            if building.Buildings[3] != 'NULL':
+            if building.IsTrait:
                 if building.Type not in Types:
                     Types.append(building.Type)
             else:
@@ -1547,7 +1561,7 @@ class Buildings:
     def GetTraits(self):
         Types = []
         for building in self.Buildings:
-            if building.Buildings[3] != 'NULL' and building.Type not in Types:
+            if building.IsTrait and building.Type not in Types:
                 Types.append(building.Type)
         return GetTraitRows(Types) if len(Types) > 0 else ''
     def GetBuildingReplaces(self):
@@ -3446,6 +3460,8 @@ class Texts:
             return # 如果没有文明数据，直接返回
         CivsData = Civs(CivData)
         for civ in CivsData.Civs:
+            if not isinstance(civ.Citizen[0], (int, float)):
+                continue
             if sum(civ.Citizen) == 0:
                 continue
             if sum(civ.Citizen) > 0:
@@ -4297,9 +4313,10 @@ def ModinfoMain():
 def main():
     start_time = time.time()
     print("Mod工具开始运行...")
-    # 创建文件夹
+    # 文件夹是否存在
     if not os.path.exists(FilePath):
-        os.makedirs(FilePath)
+        # 报错
+        raise ValueError(f"未找到文件夹 {FilePath}，请检查路径是否正确！")
     # 生成文明文件
     CivMain()
     print("文明文件生成完毕！")
@@ -4356,6 +4373,7 @@ def main():
     print(f"Mod工具运行完毕！总共用时 {end_time - start_time:.2f} 秒。")
 
 if __name__ == "__main__":
-    main()
+    if not StopMain:
+        main()
 
 
