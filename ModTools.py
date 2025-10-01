@@ -1010,7 +1010,7 @@ def GetIconAliases():
     def Support(To,From):
         if From == 0:
             raise ValueError(f"在IconAliases中，{To}的来源不能为0")
-        return xmlitem(f"Name=\"ICON_{To}\" OtherName=\"ICON_{From}\"")
+        Rows.append(xmlitem(f"Name=\"ICON_{To}\" OtherName=\"ICON_{From}\""))
     # 区域
     for index, row in DistrictData.iterrows():#第二列都是简称
         if row.iloc[5] == 1: # FromIcon列是1, #来源是7列
@@ -1023,9 +1023,9 @@ def GetIconAliases():
     for index, row in UnitData.iterrows():#第二列都是简称
         if row.iloc[5] == 1: # FromIcon列是1, #来源是7列
             Support(CommonPrefix["单位"] + Prefix + GetMidfix("单位") + row.iloc[1], row.iloc[6])
-            Support(CommonPrefix["单位"] + Prefix + GetMidfix("单位") + row.iloc[1] + '_PORTRAIT', row.iloc[6])
+            Support(CommonPrefix["单位"] + Prefix + GetMidfix("单位") + row.iloc[1] + '_PORTRAIT', row.iloc[6] + '_PORTRAIT')
         elif row.iloc[5] == 2: # FromIcon列是2, #来源是7列
-            Support(CommonPrefix["单位"] + Prefix + GetMidfix("单位") + row.iloc[1] + '_PORTRAIT', row.iloc[6])
+            Support(CommonPrefix["单位"] + Prefix + GetMidfix("单位") + row.iloc[1] + '_PORTRAIT', row.iloc[6] + '_PORTRAIT')
     if len(Rows) == 0:
         return ""
     return xmltab("\n".join(Rows), 'IconAliases')
