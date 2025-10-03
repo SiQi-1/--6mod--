@@ -18,6 +18,7 @@ path = os.path.expanduser("~/Documents/Firaxis ModBuddy/Civilization VI")
 # print(f"工程文件路径: {path}")
 # 读取 Excel 文件
 file_path = "mod工具.xlsx"  # 文件名
+Authors = "Siqi" # 作者
 
 NewCivdata = pd.read_excel(file_path, sheet_name="NewCiv", engine='openpyxl')# 读取 NewCiv sheet
 Districtdata = pd.read_excel(file_path, sheet_name="District", engine='openpyxl')# 读取 District sheet
@@ -536,7 +537,7 @@ class Civ:
             return
         # 看看是不是Self
         elif self.City == "Self":
-            cities = GetFirstColBySecondColRows(BaseData, "文明城市", self.ShortType)
+            cities = GetFirstColBySecondColRows(NewCivdata, "文明城市", self.ShortType)
             # 从第3列开始的非NaN值
             i = 0 # 计算城市数量
             for index, row in cities.iterrows():
@@ -567,7 +568,7 @@ class Civ:
             return
         # 看看是不是Self（只要有一个是Self就行）
         elif "Self" in self.Citizen:
-            citizens = GetFirstColBySecondColRows(BaseData, "文明市民", self.ShortType)
+            citizens = GetFirstColBySecondColRows(NewCivdata, "文明市民", self.ShortType)
             # 从第5列开始的非NaN值，第3列是性别，第4列是时代
             i = 0 # 计算市民数量
             for index, row in citizens.iterrows():
@@ -1790,6 +1791,7 @@ class Unit:
         self.UnitUpgrades = [] # UnitUpgrades表的数据
         self.Units_MODE = [] # Units_MODE表的数据
         self.UnitCaptures = [] # UnitCaptures表的数据
+        self.UnitReplaces = [] # UnitReplaces表的数据
         if self.IsNew:
             self.AddData()
     def Support(self, TableName):# 给出From语句
@@ -1825,24 +1827,31 @@ class Unit:
         # 接下来是Units_MODE表,其实就1行，不为NaN就插入
         if not pd.isna(eData[73]):
             self.Units_MODE.append([self.Type, eData[73]])
-        # 接下来是UnitUpgrades表,其实就1行，不为NaN就插入
+        # 接下来是UnitReplaces表
         if not pd.isna(eData[74]):
-            self.UnitUpgrades.append([self.Type, f"{CommonPrefix['单位']}{Prefix}{GetMidfix('单位')}{eData[74]}"])
-        # 接下来是UnitCaptures表,其实就1行，不为NaN就插入
+            self.UnitReplaces = [self.Type, eData[74]]
+        # 接下来是UnitUpgrades表,其实就1行，不为NaN就插入
         if not pd.isna(eData[75]):
-            self.UnitCaptures.append([self.Type, eData[75]])
+            self.UnitUpgrades.append([self.Type, eData[75]])
+        # 接下来是UnitCaptures表,其实就1行，不为NaN就插入
+        if not pd.isna(eData[76]):
+            self.UnitCaptures.append([self.Type, eData[76]])
         # 接下来是UnitAiInfos表, 22行，为NaN就不插入，否则插入默认参数
-        for i in range(77, 99): 
+        for i in range(78, 100): 
             if not pd.isna(eData[i]):
                 self.UnitAiInfos.append([self.Type, eBaseData[i]])
         # 接下来是TypeTags表, 39行，为NaN就不插入，否则插入默认参数
-        for i in range(100, 139): 
+        for i in range(101, 140): 
             if not pd.isna(eData[i]):
                 self.TypeTags.append([self.Type, eBaseData[i]])
         # 如果为特色单位， 直接插入TypeTags表
         if self.IsTrait:
             self.TypeTags.append([self.Type, f"CLASS_{Prefix}{GetMidfix('单位')}{self.ShortType}"])
     def GetUnitReplacesRows(self):
+        if self.IsNew:
+            if self.UnitReplaces != []:
+                return ListToSQLTuple(self.UnitReplaces)
+         # 旧单位才需要更新这个表
         if self.Replace:
             try:
                 return ListToSQLTuple([self.Type, self.FromData])
@@ -1961,7 +1970,7 @@ class Units:
     def GetUnitReplaces(self):
         Values = [] # 只会出现Values
         for unit in self.Units:
-            if unit.Replace and unit.GetUnitReplacesRows() != '':
+            if unit.GetUnitReplacesRows() != '':
                 Values.append(unit.GetUnitReplacesRows())
         if len(Values) == 0:
             return ''
@@ -4169,7 +4178,7 @@ def Civ6ProjectFile(Guid, ProjectGuid,str1,str2):
     <ModVersion>1</ModVersion>
     <Teaser>{fileName}</Teaser>
     <Description>{fileName}</Description>
-    <Authors>Siqi</Authors>
+    <Authors>{Authors}</Authors>
     <SpecialThanks>
     </SpecialThanks>
     <AffectsSavedGames>true</AffectsSavedGames>

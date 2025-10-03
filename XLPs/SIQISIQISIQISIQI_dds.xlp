@@ -17,5 +17,6 @@
 		<Element>PS4</Element>
 		<Element>SWITCH</Element>
 		<Element>STADIA</Element>
+		<Element>MACOS</Element>
 	</m_AllowedPlatforms>
 </AssetObjects..XLP>
