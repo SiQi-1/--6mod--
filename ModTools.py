@@ -17,7 +17,8 @@ import time
 path = os.path.expanduser("~/Documents/Firaxis ModBuddy/Civilization VI")
 # print(f"工程文件路径: {path}")
 # 读取 Excel 文件
-file_path = "mod工具 - Mujica.xlsx"  # 文件名
+# file_path = "mod工具 - Mujica.xlsx"  # 文件名
+file_path = "mod工具.xlsx"  # 文件名
 Authors = "Siqi" # 作者
 
 NewCivdata = pd.read_excel(file_path, sheet_name="NewCiv", engine='openpyxl')# 读取 NewCiv sheet
