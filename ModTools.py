@@ -17,7 +17,7 @@ import time
 path = os.path.expanduser("~/Documents/Firaxis ModBuddy/Civilization VI")
 # print(f"工程文件路径: {path}")
 # 读取 Excel 文件
-file_path = "mod工具.xlsx"  # 文件名
+file_path = "mod工具 - Mujica.xlsx"  # 文件名
 Authors = "Siqi" # 作者
 
 NewCivdata = pd.read_excel(file_path, sheet_name="NewCiv", engine='openpyxl')# 读取 NewCiv sheet
@@ -1851,6 +1851,7 @@ class Unit:
         if self.IsNew:
             if self.UnitReplaces != []:
                 return ListToSQLTuple(self.UnitReplaces)
+            return ''
          # 旧单位才需要更新这个表
         if self.Replace:
             try:
@@ -1970,10 +1971,11 @@ class Units:
     def GetUnitReplaces(self):
         Values = [] # 只会出现Values
         for unit in self.Units:
-            if unit.GetUnitReplacesRows() != '':
+            if unit.GetUnitReplacesRows() != '' and  unit.GetUnitReplacesRows() != None:
                 Values.append(unit.GetUnitReplacesRows())
         if len(Values) == 0:
             return ''
+        print(Values)
         return SQLValues("UnitReplaces", UnitReplacesRows) + convert_to_comma_newline(Values)
     def GetUnits(self):
         Values = []
