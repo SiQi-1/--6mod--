@@ -120,6 +120,27 @@ PediaText = BaseData.iloc[0, 7] == 1 # 需要百科文本
 LoadOrderNumber = int(BaseData.iloc[0, 8])  # 加载顺序
 StopMain = BaseData.iloc[0, 9] == 1 # 停用主文件（布尔值）
 
+MoreSets = GetFirstColRows(NewCivdata, "高级设置")
+IsUsed = False
+if not MoreSets.empty:
+    IsUsed = MoreSets.iloc[0, 1] == 1
+    CivIsUsed = MoreSets.iloc[0, 2] == 1
+    LeaderIsUsed = MoreSets.iloc[0, 3] == 1
+    ConfigIsUsed = MoreSets.iloc[0, 4] == 1
+    TextIsUsed = MoreSets.iloc[0, 5] == 1
+    IconIsUsed = MoreSets.iloc[0, 6] == 1
+    XLPsIsUsed = MoreSets.iloc[0, 7] == 1
+    ArtdefIsUsed = MoreSets.iloc[0, 8] == 1
+    DistrictIsUsed = MoreSets.iloc[0, 9] == 1
+    BuildingIsUsed = MoreSets.iloc[0, 10] == 1
+    UnitIsUsed = MoreSets.iloc[0, 11] == 1
+    ImprovementIsUsed = MoreSets.iloc[0, 12] == 1
+    GovernorIsUsed = MoreSets.iloc[0, 13] == 1
+    ProjectIsUsed = MoreSets.iloc[0, 14] == 1
+    PolicyIsUsed = MoreSets.iloc[0, 15] == 1
+    OtherIsUsed = MoreSets.iloc[0, 16] == 1
+    ModInfoIsUsed = MoreSets.iloc[0, 17] == 1
+
 FilePath = path + "\\" + fileName + "\\" + fileName
 
 # 获取各类数据
@@ -339,6 +360,8 @@ def ListToSQLTuple(lst):
             new_lst.append(str(item))  # 直接转换为字符串
         elif item == "NULL":
             new_lst.append(item)  # 直接添加NULL
+        elif item == None:
+            new_lst.append("NULL")  # 直接添加NULL
         else:
             new_lst.append(f"'{item}'")  # 否则加上引号
     return "(" + ", ".join(new_lst) + ")"
@@ -351,6 +374,8 @@ def ListToSQLTupleNewLine(lst):
             new_lst.append(str(item))  # 直接转换为字符串
         elif item == "NULL":
             new_lst.append(item)  # 直接添加NULL
+        elif item == None:
+            new_lst.append("NULL")  # 直接添加NULL
         else:
             new_lst.append(f"'{item}'")  # 否则加上引号
     return "(\n  " + ",\n  ".join(new_lst) + "\n)"
@@ -3218,7 +3243,7 @@ class Texts:
             if lang == CN:
                 self.LeaderTexts.append("-- " + leader.NameText)
                 self.LeaderTexts.append(self.support(lang, leader.Name, leader.NameText))
-                self.LeaderTexts.append(self.support(lang, f"LOC_{Prefix + GetMidfix("领袖") + leader.ShortType}_QUOTE", leader.QuoteText))
+                self.LeaderTexts.append(self.support(lang, f"LOC_PEDIA_LEADERS_PAGE_{Prefix}{GetMidfix("领袖")}{leader.ShortType}_QUOTE", leader.QuoteText))
                 self.LeaderTexts.append(self.support(lang, f"LOC_LOADING_INFO_{leader.Type}", leader.LoadingText))
                 self.LeaderTexts.append(self.support(lang, f"LOC_{TraitType}_NAME", leader.AbilityNameText))
                 self.LeaderTexts.append(self.support(lang, f"LOC_{TraitType}_DESCRIPTION", leader.AbilityDescriptionText))
@@ -4388,8 +4413,89 @@ def main():
     end_time = time.time()
     print(f"Mod工具运行完毕！总共用时 {end_time - start_time:.2f} 秒。")
 
+def mainSelf():
+    start_time = time.time()
+    print("Mod工具开始运行...")
+    # 文件夹是否存在
+    if not os.path.exists(FilePath):
+        # 报错
+        raise ValueError(f"未找到文件夹 {FilePath}，请检查路径是否正确！")
+    if CivIsUsed:
+        # 生成文明文件
+        CivMain()
+        print("文明文件生成完毕！")
+    if LeaderIsUsed:
+        # 生成领袖文件
+        LeaderMain()
+        print("领袖文件生成完毕！")
+    if ConfigIsUsed:
+        # 生成Config文件
+        ConfigMain()
+        print("Config文件生成完毕！")
+    if IconIsUsed:
+        # 生成Icon文件
+        IconMain()
+        print("Icon文件生成完毕！")
+    if DistrictIsUsed:
+        # 生成区域文件
+        DistrictMain()
+        print("区域文件生成完毕！")
+    if BuildingIsUsed:
+        # 生成建筑文件
+        BuildingMain()
+        print("建筑文件生成完毕！")
+    if UnitIsUsed:
+        # 生成单位文件
+        UnitMain()
+        print("单位文件生成完毕！")
+    if ImprovementIsUsed:
+        # 生成改良设施文件
+        ImprovementMain()
+        print("改良设施文件生成完毕！")
+    if GovernorIsUsed:
+        # 生成总督文件
+        GovernorMain()
+        print("总督文件生成完毕！") 
+    if ProjectIsUsed:
+        # 生成项目文件
+        ProjectMain()
+        print("项目文件生成完毕！")
+    if PolicyIsUsed:
+        # 生成政策卡文件
+        PolicyMain()
+        print("政策卡文件生成完毕！")
+    if OtherIsUsed:
+        # 生成历史时刻文件
+        HistoricalMomentMain()
+        print("历史时刻文件生成完毕！")
+        # 生成杂项文件
+        FilesMain()
+        print("杂项文件生成完毕！")
+    if TextIsUsed:
+        # 生成文本文件
+        TextMain()
+        print("文本文件生成完毕！")
+    if XLPsIsUsed:
+        # 生成XLPs文件
+        XLPsMain()
+        print("XLPs文件生成完毕！")
+    if ArtdefIsUsed:
+        # 生成ArtDefs文件
+        ArtDefsMain()
+        print("ArtDefs文件生成完毕！")
+    if ModInfoIsUsed:
+        # 生成配置文件
+        ModinfoMain()
+        print("配置文件生成完毕！")
+    # 结束
+    end_time = time.time()
+    print(f"Mod工具运行完毕！总共用时 {end_time - start_time:.2f} 秒。")
+
 if __name__ == "__main__":
     if not StopMain:
-        main()
+        if IsUsed:
+            mainSelf()
+        else:
+            main()
 
 
